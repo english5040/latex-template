@@ -1,0 +1,392 @@
+% Package comment legend:
+% !! = package loading order
+% ++ = instructions to avoid conflicts
+% CC = package conflicts. Sometimes can be avoided by renaming commands
+% RR = package overrides other package
+% DD = package dependency, loads other package if not already loaded
+% dd"" = nested package notes. "" applies to loaded package
+% SS = package supersedes feature in other package
+% ** = important note when using
+% <> = might need to move package around
+% Todo = have yet to research package technicalities
+
+% Note: it may be better to explicitly put the loaded packages in the \usepackage commands like \usepackage{amsmath, mathtools} = \usepackage{mathtools} to make things clearer
+% Note: these sections of packages may have to be rearranged...they might not even stay contiguous
+% Note: http://www.macfreek.nl/memory/LaTeX_package_conflicts has an incomplete listing of some conflicts.
+
+\RequirePackage[l2tabu, orthodox]{nag} % tells you about incorrect and technically legal but probably unwanted latex
+\RequirePackage{etex} % avoid warnings. etex is not needed in modern latex
+
+
+\documentclass[letterpaper, 10pt]{article} % default [10pt] can be changed
+
+% ------Colors------------------------
+% Must put before graphics
+
+\usepackage[hyperref, dvipsnames*, svgnames, x11names]{xcolor} % ** if using pdftex, apply option fixpdftex
+% ** dvipsnames conflicts with some other colors; thus, we defer their definition
+
+% ------------------------------------
+
+% ------Tools--------------
+\usepackage[xetex]{graphicx} % for including graphics in pdfTeX
+% !! load before xltxtra
+
+\usepackage{verbatim} % LaTeX required, extends verbatim and adds comment environment
+% almost certainly does not conflict with anything
+
+% \usepackage{afterpage} % a LaTeX required package. Allows execution of commands after the next page break
+% this should not conflict
+
+\usepackage{calc} % this package is a LaTeX required package, shouldn't conflict
+
+\usepackage{etoolbox}
+% \usepackage{etextools}
+% DD loads etoolbox
+% CC conflicts with etoolbox, it redefines \doforlistloop
+\usepackage{xpatch} % DD loads on etoolbox
+% extended macro-patching commands
+
+% -------------------------
+
+
+% ---Default ams packages (big happy family)-----------
+
+\usepackage{mathtools} %DD loads amsmath
+% I would not remove this because it fixes 2 bugs in amsmath automatically.
+% The most important part of mathtools is \clap, \mathclap for smooshing both sides of a box without affecting the ink, which is useful for long subscripts and superscripts.
+% !! must come before unicode-math since unicode-math overwrites
+\mathtoolsset{mathic=true}
+
+% \usepackage{amssymb} % not needed with unicode-math
+
+% \usepackage{colonequals} % more colon symbols
+% !! must come before unicode-math since unicode-math overwrites
+% -----------------------------------------------------
+
+% ----Encoding (not xetex or luatex) --------------------
+% Doing XeTeX or LuaTeX pretty much obviates the need for these
+% \usepackage[T1]{fontenc} % even if you're not writng other languages, if you're using LaTeX, you need this. Even < and > display wrongly!
+
+% \usepackage[utf8]{inputenc} %** Note that just because you can input unicode doesn't mean LaTeX will recognize the characters.
+% <> (maybe) It is remotely possible that defining new fonts before this package lets you use more symbols.
+
+% ---- (xetex or luatex) --------------------------------
+
+\usepackage{xltxtra} %** fontspec necessary for xetex/luatex
+% DD pulls in fontspec, metalogo, realscripts
+\usepackage{unicode-math} % unicode input
+
+% --------------------------------
+
+% -----Theorems-----
+
+\usepackage[ntheorem]{empheq} % side effect: fixes ntheorem, improves endmarks
+% \usepackage{amsthm} % CC conflicts with ntheorem
+\usepackage[noconfig, thmmarks, amsmath, hyperref]{ntheorem} %CC conflicts with amsthm. Use option amsthm instead for amsthm-like commands.
+% Todo may be buggy. It has more features than amsthm though
+% option standard conflicts with option amsthm
+
+% ------------------
+
+% ----General features--------------
+% \usepackage{siunitx} % Takes care of all your units-related needs.
+
+\usepackage{array} % a LaTeX required package, shouldn't conflict. Extends array and tabular environments
+\usepackage{delarray} % a LaTeX required package. Extends array, allowing it to be surrounded by delimiters. Definitely safe to use with array
+
+\usepackage{parskip}
+% instead of indenting paragraphs, puts 0.5\baselineskip between them
+% I think LaTeX's default paragraphs are fine, but others may disagree
+
+\usepackage[shortlabels]{enumitem} % allows customization of list environments. Essential.
+% -------------------------------
+
+% -----Graphics-------
+% These shouldn't conflict with any other section, as far as I can tell.
+
+% \usepackage{tikz} % tikz/pgf! Very rewarding.
+% DD loads xcolor, better give your colors to xcolor before that happens
+% ** You should probably use the built-in library babel that sets the catcodes of various symbols correctly in all tikzpicture enviroments.
+% \usetikzlibrary{babel, calc} % babel necessary to protect catcodes, especially if using calc
+
+% --------------------
+
+
+% ----Typography------------------
+
+\usepackage{microtype} % extremely, extremely subtle changes to make text look better. I haven't researched conflicts yet.
+
+% --------------------------------
+
+% ---Text formatting--------
+% \usepackage{soul} % spaced out letters, underlining, strikethrough, highlighting
+% I haven't found any conflicts yet
+% Quality of package is dubious
+
+% \usepackage{framed} % need to look into this one more
+
+% --------------------------
+
+% ---Math mode features-------------
+
+\usepackage{mleftright} % defines \mleft, \mright to be delimiters, not an inner atom. This fixes spacing issues when any operator or function is placed in front of \left
+\mleftright% changes \left to \mleft and \right to \mright
+
+\usepackage{centernot} % puts \not centered on the previous symbol
+
+% \usepackage{scalerel} % provides commands to scale or stretch objects either relative to another object or absolutely
+
+% \usepackage{accents} % note that accents redefines dddot and ddddot
+% \newcommand{\vect}[1]{\accentset{\rightharpoonup}{#1}} % I have learned that there are better ways to do this. See the (lengthy) discussion of how to put things on top of other things on tex.stackexchange.com . You can start with one LaTeXer's implementation of "widebar" at http://tex.stackexchange.com/questions/16337/can-i-get-a-widebar-without-using-the-mathabx-package/60253#60253 . It's simply ingenious.
+
+% \usepackage{mathdots} %RRCC overrides, possibly conflicts with accents because it redefines dddot and ddddot (again)
+
+% \neverevereverusepackage{commath} % Please never, ever, ever use this package. Its formatting is literally wrong, in several ways.
+
+\usepackage[italic, thinc]{esdiff} % \diff for derivatives
+
+% ------------------------------------
+% --References--------------
+
+\usepackage[hypertexnames=false]{hyperref} %!! One of the most problematic packages with respect to loading order. Sometimes needs to be loaded before, sometimes after. See the readme at http://www.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/README for a comprehensive listing and see http://www.macfreek.nl/memory/LaTeX_package_conflicts for more conflicts.
+% DD loads backref, nameref
+
+\usepackage{cleveref} %!! load very late. Load all other reference packages before this
+% can use \cref{} which adds text depending on what is referenced.
+% SS Compatible with fancyref, ntheorem, varioref, but supersedes many features of them
+
+\usepackage{autonum} %!! must be loaded after other reference packages and cleveref. load very late
+% ++ must load hyperref with option hypertexnames=false
+% only number the referenced equations; compatible with cleverref. It's actually a very new package (it came out Jan 2015).
+% SS Supersedes the same feature in mathtools.
+% ** requires 3 compilations total (1 extra) to determine references
+% ** provide \label at end of equation, before \\, except at the start for split
+% DD requires package etextools. According to developer, this package is experimental
+% ddCC etextools conflicts with etoolbox
+% ddCC etextools conflicts with biblatex. Consult http://tex.stackexchange.com/questions/220268/biblatex-and-autonum-dont-work-together and http://tex.stackexchange.com/questions/49556/incompatibility-between-etextools-and-etoolbox-command-dolistloop-forlistloop
+
+% --------------------------
+
+% ----Page layout-------------------
+\usepackage[xetex,margin=1in]{geometry} % can change the margins, etc. of the page
+% !! in some cases, must come after hyperref
+
+% ----------------------------------
+
+% --------------------------Macros----------
+
+% \tracingpatches % traces patches
+
+%https://tex.stackexchange.com/questions/19457/using-display-style-fraction-in-a-matrix-environment
+\makeatletter
+\newif\ifcenter@asb@\center@asb@false
+\def\center@arstrutbox{%
+  \setbox\@arstrutbox\hbox{$\vcenter{\box\@arstrutbox}$}%
+}
+\newcommand*{\CenteredArraystretch}[1]{%
+  \ifcenter@asb@\else
+  \patchcmd{\@array}{\begingroup \@mkpream}{\center@arstrutbox \begingroup \@mkpream}{}{}%
+  \center@asb@true
+  \fi
+  \renewcommand{\arraystretch}{#1}%
+}
+\makeatother
+
+% https://tex.stackexchange.com/questions/16337/can-i-get-a-widebar-without-using-the-mathabx-package
+\makeatletter
+\let\save@mathaccent\mathaccent
+\newcommand*\if@single[3]{%
+  \setbox0\hbox{${\mathaccent"0362{#1}}^H$}%
+  \setbox2\hbox{${\mathaccent"0362{\kern0pt#1}}^H$}%
+  \ifdim\ht0=\ht2 #3\else #2\fi
+}
+% The bar will be moved to the right by a half of \macc@kerna, which is computed by amsmath:
+\newcommand*\rel@kern[1]{\kern#1\dimexpr\macc@kerna}
+% If there's a superscript following the bar, then no negative kern may follow the bar;
+% an additional {} makes sure that the superscript is high enough in this case:
+\newcommand*\widebar[1]{\@ifnextchar^{{\wide@bar{#1}{0}}}{\wide@bar{#1}{1}}}
+% Use a separate algorithm for single symbols:
+\newcommand*\wide@bar[2]{\if@single{#1}{\wide@bar@{#1}{#2}{1}}{\wide@bar@{#1}{#2}{2}}}
+\newcommand*\wide@bar@[3]{%
+  \begingroup
+  \def\mathaccent##1##2{%
+    % Enable nesting of accents:
+    \let\mathaccent\save@mathaccent
+    % If there's more than a single symbol, use the first character instead (see below):
+    \if#32 \let\macc@nucleus\first@char \fi
+    % Determine the italic correction:
+    \setbox\z@\hbox{$\macc@style{\macc@nucleus}_{}$}%
+    \setbox\tw@\hbox{$\macc@style{\macc@nucleus}{}_{}$}%
+    \dimen@\wd\tw@
+    \advance\dimen@-\wd\z@
+    % Now \dimen@ is the italic correction of the symbol.
+    \divide\dimen@ 3
+    \@tempdima\wd\tw@
+    \advance\@tempdima-\scriptspace
+    % Now \@tempdima is the width of the symbol.
+    \divide\@tempdima 10
+    \advance\dimen@-\@tempdima
+    % Now \dimen@ = (italic correction / 3) - (Breite / 10)
+    \ifdim\dimen@>\z@ \dimen@0pt\fi
+    % The bar will be shortened in the case \dimen@<0 !
+    \rel@kern{0.6}\kern-\dimen@
+    \if#31
+    \overline{\rel@kern{-0.6}\kern\dimen@\macc@nucleus\rel@kern{0.4}\kern\dimen@}%
+    \advance\dimen@0.4\dimexpr\macc@kerna
+    % Place the combined final kern (-\dimen@) if it is >0 or if a superscript follows:
+    \let\final@kern#2%
+    \ifdim\dimen@<\z@ \let\final@kern1\fi
+    \if\final@kern1 \kern-\dimen@\fi
+    \else
+    \overline{\rel@kern{-0.6}\kern\dimen@#1}%
+    \fi
+  }%
+  \macc@depth\@ne
+  \let\math@bgroup\@empty \let\math@egroup\macc@set@skewchar
+  \mathsurround\z@ \frozen@everymath{\mathgroup\macc@group\relax}%
+  \macc@set@skewchar\relax
+  \let\mathaccentV\macc@nested@a
+  % The following initialises \macc@kerna and calls \mathaccent:
+  \if#31
+  \macc@nested@a\relax111{#1}%
+  \else
+  % If the argument consists of more than one symbol, and if the first token is
+  % a letter, use that letter for the computations:
+  \def\gobble@till@marker##1\endmarker{}%
+  \futurelet\first@char\gobble@till@marker#1\endmarker
+  \ifcat\noexpand\first@char A\else
+  \def\first@char{}%
+  \fi
+  \macc@nested@a\relax111{\first@char}%
+  \fi
+  \endgroup
+}
+\makeatother
+
+% --------------------------
+
+% --Settings--
+
+\allowdisplaybreaks
+
+% ------------
+
+% --Macros--
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert} % this command defined in mathtools
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\parens}{(}{)}
+\DeclarePairedDelimiter{\bracks}{[}{]}
+\DeclarePairedDelimiter{\braces}{\{}{\}}
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\rationals}{\mathbb{Q}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\complexes}{\mathbb{C}}
+
+\newcommand{\pnaturals}{\naturals_{>0}}
+\newcommand{\nnnaturals}{\naturals_0}
+\newcommand{\pintegers}{\integers_{>0}}
+\newcommand{\nnintegers}{\integers_{≥0}}
+\newcommand{\preals}{\reals_{>0}}
+\newcommand{\nnreals}{\reals_{≥0}}
+
+\newcommand{\percent}{\mathbin{\%}}
+
+\let\ReFrak\Re % save old definitions
+\let\ImFrak\Im
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+\DeclareMathOperator{\im}{im}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Conv}{Conv}
+\DeclareMathOperator{\absop}{abs}
+
+\newcommand{\phantomrel}{\mathrel{\hphantom{=}}{}}
+
+\renewcommand{\Pr}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+
+\newcommand{\ud}{\relax}
+\let\ud\d % save old d, which is an underdot accent
+% simplification of dx notation
+\renewcommand{\d}[1]{\mathinner{d#1}}
+
+% ----------
+
+% ----Theorem stuff----
+
+\theoremclass{LaTeX}
+\theoremstyle{plain}
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont}
+\theoremseparator{.}
+\theorempreskip{0.75\baselineskip}%\topsep
+\theorempostskip{0.75\baselineskip}%\topsep
+\theoremindent0cm
+\theoremnumbering{arabic}
+\theoremsymbol{}
+\newtheorem{thm}{Theorem}
+
+\theoremclass{thm}
+\newtheorem{lem}[thm]{Lemma}
+
+\theoremclass{thm}
+\newtheorem{prop}[thm]{Proposition}
+
+\theoremclass{thm}
+\newtheorem{cor}{Corollary}[thm]
+
+\theoremclass{thm}
+\theoremprework{\bigskip\hrule}
+\theorempostwork{\hrule\bigskip}
+\newtheorem{prob}{Problem}
+
+\theoremclass{thm}
+\theoremheaderfont{\normalfont\itshape}
+\theoremstyle{nonumberplain}
+\theoremsymbol{\ensuremath{■}}
+\theorempostwork{\setcounter{case}{0}}
+\newtheorem{prf}{Proof}
+
+\theoremclass{prf}
+\theoremheaderfont{\normalfont\bfseries}
+\theoremstyle{nonumberbreak}
+\theoremsymbol{\ensuremath{✓}}
+\theorempostwork{\setcounter{case}{0}}
+\newtheorem{sol}{Solution}
+
+\theoremclass{prf}
+\theoremstyle{plain}
+\theoremindent\leftmargin
+\theoremsymbol{\ensuremath{▶}}
+\theorempostwork{\setcounter{case}{0}}
+\newtheorem{clm}{Claim}[prf]
+
+\theoremclass{clm}
+\theorempostwork{\setcounter{case}{0}}
+\newtheorem{solclm}{Claim}[sol]
+
+\theoremclass{clm}
+\theoremsymbol{\ensuremath{▷}}
+\newtheorem{case}{Case}
+
+\theoremclass{clm}
+\theoremnumbering{alph}
+\theoremsymbol{\ensuremath{▷▷}}
+\newtheorem{subcase}{Subcase}[case]
+
+\theoremclass{clm}
+\theoremstyle{nonumberplain}
+\theoremsymbol{}
+\newtheorem{basecase}{Base Case}
+
+\theoremclass{basecase}
+\newtheorem{indstep}{Inductive Step}
+
+% ---------------------
