@@ -7,7 +7,6 @@
 % dd"" = nested package notes. "" applies to loaded package
 % SS = package supersedes feature in other package
 % ** = important note when using
-% <> = might need to move package around
 % Todo = have yet to research package technicalities
 
 % Note: it may be better to explicitly put the loaded packages in the \usepackage commands like \usepackage{amsmath, mathtools} = \usepackage{mathtools} to make things clearer
@@ -15,11 +14,19 @@
 % Note: http://www.macfreek.nl/memory/LaTeX_package_conflicts has an incomplete listing of some conflicts.
 
 \RequirePackage[l2tabu, orthodox]{nag} % tells you about incorrect and technically legal but probably unwanted latex
-\RequirePackage{etex} % avoid warnings. etex is not needed in modern latex
+
+\RequirePackage{luatex85} % luatex compatibility layer with pdftex. Necessary for geometry
+
+% \RequirePackage{etex} % avoid warnings. etex is not needed in modern latex
+% unneeded for luatex
 
 
-\documentclass[letterpaper, 10pt]{article} % default [10pt] can be changed
+\documentclass[letterpaper, 10pt, final]{article} % default [10pt] can be changed
 
+% --- engine ---
+\usepackage{luatex}
+\usepackage{pdftexcmds}
+% --------------
 % ------Colors------------------------
 % Must put before graphics
 
@@ -29,7 +36,7 @@
 % ------------------------------------
 
 % ------Tools--------------
-\usepackage[xetex]{graphicx} % for including graphics in pdfTeX
+\usepackage{graphicx} % for including graphics in pdfTeX
 % !! load before xltxtra
 
 \usepackage{verbatim} % LaTeX required, extends verbatim and adds comment environment
@@ -55,10 +62,11 @@
 \usepackage{mathtools} %DD loads amsmath
 % I would not remove this because it fixes 2 bugs in amsmath automatically.
 % The most important part of mathtools is \clap, \mathclap for smooshing both sides of a box without affecting the ink, which is useful for long subscripts and superscripts.
-% !! must come before unicode-math since unicode-math overwrites
+% !! must come before unicode-math since unicode-math overwrites (TODO is this really necessary? confirm later)
 \mathtoolsset{mathic=true}
 
-% \usepackage{amssymb} % not needed with unicode-math
+\usepackage{amssymb} % not needed with unicode-math
+\let\amsvarnothing\varnothing
 
 % \usepackage{colonequals} % more colon symbols
 % !! must come before unicode-math since unicode-math overwrites
@@ -69,23 +77,44 @@
 % \usepackage[T1]{fontenc} % even if you're not writng other languages, if you're using LaTeX, you need this. Even < and > display wrongly!
 
 % \usepackage[utf8]{inputenc} %** Note that just because you can input unicode doesn't mean LaTeX will recognize the characters.
-% <> (maybe) It is remotely possible that defining new fonts before this package lets you use more symbols.
+% !! It is possible that defining new fonts before this package lets you use more symbols.
 
 % ---- (xetex or luatex) --------------------------------
 
-\usepackage{xltxtra} %** fontspec necessary for xetex/luatex
+% \usepackage{xltxtra} %** only xetex
 % DD pulls in fontspec, metalogo, realscripts
-\usepackage{unicode-math} % unicode input
+\usepackage{fontspec} %** fontspec necessary for xetex/luatex
+% \usepackage[warnings-off={mathtools-colon, mathtools-overbracket}]{unicode-math} % unicode input
+\usepackage{lualatex-math}
 
 % --------------------------------
 
 % -----Theorems-----
 
-\usepackage[ntheorem]{empheq} % side effect: fixes ntheorem, improves endmarks
-% \usepackage{amsthm} % CC conflicts with ntheorem
-\usepackage[noconfig, thmmarks, amsmath, hyperref]{ntheorem} %CC conflicts with amsthm. Use option amsthm instead for amsthm-like commands.
-% Todo may be buggy. It has more features than amsthm though
+
+\usepackage{amsthm} % CC conflicts with ntheorem
+% the following fixes line breaking of long proof names
+% (from amsthm documentation:)
+\makeatletter
+\renewenvironment{proof}[1][\proofname]{\par
+  \pushQED{\qed}%
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+\item\relax
+  {\itshape
+    #1\@addpunct{.}}\hspace\labelsep\ignorespaces
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+\makeatother
+
+% \usepackage[ntheorem]{empheq} % side effect: fixes ntheorem, improves endmarks
+% \usepackage[noconfig, thmmarks, amsmath, hyperref]{ntheorem} %CC conflicts with amsthm. Use option amsthm instead for amsthm-like commands.
+% It has some bugs, though it has more features than amsthm
 % option standard conflicts with option amsthm
+
+
+\usepackage{thmtools} % use with either amsthm or ntheorem; usage with ntheorem may lack some features
 
 % ------------------
 
@@ -116,6 +145,7 @@
 % ----Typography------------------
 
 \usepackage{microtype} % extremely, extremely subtle changes to make text look better. I haven't researched conflicts yet.
+% ** works best with pdftex, luatex; xetex lacks font expansion
 
 % --------------------------------
 
@@ -149,10 +179,11 @@
 % ------------------------------------
 % --References--------------
 
-\usepackage[hypertexnames=false]{hyperref} %!! One of the most problematic packages with respect to loading order. Sometimes needs to be loaded before, sometimes after. See the readme at http://www.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/README for a comprehensive listing and see http://www.macfreek.nl/memory/LaTeX_package_conflicts for more conflicts.
+\usepackage[hypertexnames=false, colorlinks, unicode]{hyperref} %!! One of the most problematic packages with respect to loading order. Sometimes needs to be loaded before, sometimes after. See the readme at http://www.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/README for a comprehensive listing and see http://www.macfreek.nl/memory/LaTeX_package_conflicts for more conflicts.
 % DD loads backref, nameref
+% if using xetex, use option xetex
 
-\usepackage{cleveref} %!! load very late. Load all other reference packages before this
+\usepackage[nameinlink]{cleveref} %!! load very late. Load all other reference packages before this
 % can use \cref{} which adds text depending on what is referenced.
 % SS Compatible with fancyref, ntheorem, varioref, but supersedes many features of them
 
@@ -169,7 +200,8 @@
 % --------------------------
 
 % ----Page layout-------------------
-\usepackage[xetex,margin=1in]{geometry} % can change the margins, etc. of the page
+\usepackage[letterpaper]{geometry} % can change the margins, etc. of the page
+% This is only default to save paper (for e.g. homework). Latex's text area is much smaller
 % !! in some cases, must come after hyperref
 
 % ----------------------------------
@@ -178,7 +210,7 @@
 
 % \tracingpatches % traces patches
 
-%https://tex.stackexchange.com/questions/19457/using-display-style-fraction-in-a-matrix-environment
+% https://tex.stackexchange.com/questions/19457/using-display-style-fraction-in-a-matrix-environment
 \makeatletter
 \newif\ifcenter@asb@\center@asb@false
 \def\center@arstrutbox{%
@@ -186,7 +218,7 @@
 }
 \newcommand*{\CenteredArraystretch}[1]{%
   \ifcenter@asb@\else
-  \patchcmd{\@array}{\begingroup \@mkpream}{\center@arstrutbox \begingroup \@mkpream}{}{}%
+  \patchcmd{\@array}{\begingroup \@mkpream}{\center@arstrutbox \begingroup \@mkpream}{}{}% I have modified this for the array package
   \center@asb@true
   \fi
   \renewcommand{\arraystretch}{#1}%
@@ -227,7 +259,7 @@
     % Now \@tempdima is the width of the symbol.
     \divide\@tempdima 10
     \advance\dimen@-\@tempdima
-    % Now \dimen@ = (italic correction / 3) - (Breite / 10)
+    % Now \dimen@ = (italic correction / 3) - (width / 10)
     \ifdim\dimen@>\z@ \dimen@0pt\fi
     % The bar will be shortened in the case \dimen@<0 !
     \rel@kern{0.6}\kern-\dimen@
@@ -269,6 +301,10 @@
 % --Settings--
 
 \allowdisplaybreaks
+\thinmuskip=3mu minus 2mu
+\medmuskip=4mu plus 2mu minus 3mu
+\thickmuskip=5mu plus 3mu minus 1mu
+
 
 % ------------
 
@@ -276,9 +312,10 @@
 
 \DeclarePairedDelimiter{\abs}{\lvert}{\rvert} % this command defined in mathtools
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
-\DeclarePairedDelimiter{\parens}{(}{)}
-\DeclarePairedDelimiter{\bracks}{[}{]}
-\DeclarePairedDelimiter{\braces}{\{}{\}}
+\DeclarePairedDelimiter{\paren}{(}{)}
+\DeclarePairedDelimiter{\bkt}{[}{]}
+\DeclarePairedDelimiter{\set}{\{}{\}}
+\DeclarePairedDelimiter{\ang}{⟨}{⟩}
 
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
@@ -289,14 +326,14 @@
 \newcommand{\reals}{\mathbb{R}}
 \newcommand{\complexes}{\mathbb{C}}
 
-\newcommand{\pnaturals}{\naturals_{>0}}
+\newcommand{\field}{\mathbb{F}}
+
+\newcommand{\pnaturals}{\naturals^+}
 \newcommand{\nnnaturals}{\naturals_0}
 \newcommand{\pintegers}{\integers_{>0}}
 \newcommand{\nnintegers}{\integers_{≥0}}
 \newcommand{\preals}{\reals_{>0}}
 \newcommand{\nnreals}{\reals_{≥0}}
-
-\newcommand{\percent}{\mathbin{\%}}
 
 \let\ReFrak\Re % save old definitions
 \let\ImFrak\Im
@@ -305,88 +342,50 @@
 \DeclareMathOperator{\im}{im}
 \DeclareMathOperator{\tr}{tr}
 \DeclareMathOperator{\Conv}{Conv}
-\DeclareMathOperator{\absop}{abs}
+\DeclareMathOperator{\Lin}{Lin}
+\DeclareMathOperator{\Bilin}{Bilin}
+\DeclareMathOperator{\Span}{Span}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\nullity}{nullity}
 
 \newcommand{\phantomrel}{\mathrel{\hphantom{=}}{}}
 
-\renewcommand{\Pr}{\mathbb{P}}
 \newcommand{\E}{\mathbb{E}}
 
-\newcommand{\ud}{\relax}
-\let\ud\d % save old d, which is an underdot accent
+\newcommand{\union}{\cup}
+\newcommand{\intersect}{\cap}
+\newcommand{\bigunion}{\bigcup}
+\newcommand{\bigintersect}{\bigcap}
+
 % simplification of dx notation
-\renewcommand{\d}[1]{\mathinner{d#1}}
+\newcommand{\df}[1]{\mathop{d}\mathopen{}\mathinner{#1}}
 
 % ----------
 
 % ----Theorem stuff----
 
-\theoremclass{LaTeX}
-\theoremstyle{plain}
-\theoremheaderfont{\normalfont\bfseries}
-\theorembodyfont{\normalfont}
-\theoremseparator{.}
-\theorempreskip{0.75\baselineskip}%\topsep
-\theorempostskip{0.75\baselineskip}%\topsep
-\theoremindent0cm
-\theoremnumbering{arabic}
-\theoremsymbol{}
-\newtheorem{thm}{Theorem}
+\declaretheorem[name=Theorem, refname={theorem,theorems}, Refname={Theorem,Theorems}]{thm}
+\declaretheorem[name=Lemma, refname={lemma,lemmas}, Refname={Lemma,Lemmas}, numberlike=thm]{lem}
+\declaretheorem[name=Proposition, refname={proposition,propositions}, Refname={Proposition,Propositions}, numberlike=thm]{prop}
+\declaretheorem[name=Corollary, refname={corollary,corollaries}, Refname={Corollary,Corollaries}, numberwithin=thm]{cor}
 
-\theoremclass{thm}
-\newtheorem{lem}[thm]{Lemma}
+\declaretheorem[name=Remark, style=remark, refname={remark,remarks}, Refname={Remark,Remarks}, numberlike=thm]{rem}
+\declaretheorem[name=Note, style=remark, refname={note,notes}, Refname={Note,Notes}, numberlike=thm]{note}
 
-\theoremclass{thm}
-\newtheorem{prop}[thm]{Proposition}
 
-\theoremclass{thm}
-\newtheorem{cor}{Corollary}[thm]
+\declaretheorem[name=Definition, style=definition, refname={definition,definitions}, Refname={Definition,Definitions}, numberlike=thm]{defn}
+\declaretheorem[name=Problem, style=definition, refname={problem,problems}, Refname={Problem,Problems}]{prob}
 
-\theoremclass{thm}
-\theoremprework{\bigskip\hrule}
-\theorempostwork{\hrule\bigskip}
-\newtheorem{prob}{Problem}
+\declaretheorem[name=Claim, style=definition, refname={claim,claims}, Refname={Claim,Claims}]{clm}
+\declaretheorem[name=Step, style=definition, refname={step,steps}, Refname={Step,Steps}, numberlike=clm]{step}
+\declaretheorem[name=Case, style=definition, refname={case,cases}, Refname={Case,Cases}]{case}
 
-\theoremclass{thm}
-\theoremheaderfont{\normalfont\itshape}
-\theoremstyle{nonumberplain}
-\theoremsymbol{\ensuremath{■}}
-\theorempostwork{\setcounter{case}{0}}
-\newtheorem{prf}{Proof}
-
-\theoremclass{prf}
-\theoremheaderfont{\normalfont\bfseries}
-\theoremstyle{nonumberbreak}
-\theoremsymbol{\ensuremath{✓}}
-\theorempostwork{\setcounter{case}{0}}
-\newtheorem{sol}{Solution}
-
-\theoremclass{prf}
-\theoremstyle{plain}
-\theoremindent\leftmargin
-\theoremsymbol{\ensuremath{▶}}
-\theorempostwork{\setcounter{case}{0}}
-\newtheorem{clm}{Claim}[prf]
-
-\theoremclass{clm}
-\theorempostwork{\setcounter{case}{0}}
-\newtheorem{solclm}{Claim}[sol]
-
-\theoremclass{clm}
-\theoremsymbol{\ensuremath{▷}}
-\newtheorem{case}{Case}
-
-\theoremclass{clm}
-\theoremnumbering{alph}
-\theoremsymbol{\ensuremath{▷▷}}
-\newtheorem{subcase}{Subcase}[case]
-
-\theoremclass{clm}
-\theoremstyle{nonumberplain}
-\theoremsymbol{}
-\newtheorem{basecase}{Base Case}
-
-\theoremclass{basecase}
-\newtheorem{indstep}{Inductive Step}
+\declaretheorem[name=Base Case, style=definition, refname={base case,base cases}, Refname={Base case,Base cases}]{basecase}
+\declaretheorem[name=Inductive Step, style=definition, refname={inductive step,inductive steps}, Refname={Inductive step,Inductive steps}]{indstep}
 
 % ---------------------
+
+\begin{document}
+
+
+\end{document}
